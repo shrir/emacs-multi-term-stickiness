@@ -2,6 +2,23 @@
 This adds stickiness to multi-term buffers so that they stick to their own
 windows.
 
+** Installation
+
+*** Backup multi-term.el from Emacs package directory
+#+BEGIN_SRC shell
+mv ~/.emacs.d/elpa/multi-term-<package-version>/multi-term.el ~/.emacs.d/elpa/multi-term-<package-version>/multi-term.el.bak
+#+END_SRC
+
+*** Clone repository
+#+BEGIN_SRC shell
+git clone https://github.com/shrir/emacs-multi-term-stickiness.git
+#+END_SRC
+
+*** Copy multi-term script to Emacs package directory
+#+BEGIN_SRC shell
+cp emacs-multi-term-stickiness/multi-term.el ~/.emacs.d/elpa/multi-term-<package-version>/multi-term.el
+#+END_SRC
+
 ** Why stickiness?
 Multiple terminal buffers are quite useful but sometimes you loose track of how many
 you have open. And its a bit annoying to cycle through them to find the one you are
