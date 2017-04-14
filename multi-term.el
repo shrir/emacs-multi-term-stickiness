@@ -6,7 +6,7 @@
 ;; Copyright (C) 2010, ahei, all rights reserved.
 ;; Created: <2008-09-19 23:02:42>
 ;; Version: 1.3
-;; Last-Updated: 2016-06-19 17:30:20
+;; Last-Updated: 2017-04-14 20:32:42
 ;; URL: http://www.emacswiki.org/emacs/download/multi-term.el
 ;; Keywords: term, terminal, multiple buffer
 ;; Compatibility: GNU Emacs 23.2.1, GNU Emacs 24.4 (and prereleases)
@@ -77,6 +77,7 @@
 ;;      `multi-term-dedicated-close'    Close dedicated term window.
 ;;      `multi-term-dedicated-toggle'   Toggle dedicated term window.
 ;;      `multi-term-dedicated-select'   Select dedicated term window.
+;;      `multi-term-stickiness-toggle'   Toggle stickiness of term windows.
 ;;
 ;; Tips:
 ;;
@@ -126,6 +127,10 @@
 ;;
 
 ;;; Change log:
+;;
+;; 2017/04/14
+;;      * Add stickiness to multi-term buffers making them stick to their own windows
+;;      Stickiness can be toggled with `multi-term-stickiness-toggle'.
 ;;
 ;; 2016/06/19
 ;;      * Add Hogren's patch: `term-send-delete-word' and binding to key 'M-d'.
@@ -419,6 +424,15 @@ Default is nil."
   :group 'multi-term
   )
 
+(defcustom multi-term-stickiness nil
+  "Show all term buffers, because sometimes you simply need to see them all or just during switching
+instead of cycling through them. Enable with t and toggle with multi-term-stickiness-toggle.
+Note: It does not retain the order of buffers in windows
+
+Default is nil."
+  :type 'boolean
+  :group 'multi-term)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Constant ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defconst multi-term-dedicated-buffer-name "MULTI-TERM-DEDICATED"
   "The buffer name of dedicated `multi-term'.")
@@ -444,6 +458,9 @@ Details look option `multi-term-dedicated-close-back-to-open-buffer-p'.")
 Will prompt you shell name when you type `C-u' before this command."
   (interactive)
   (let (term-buffer)
+    ;; Split window
+    (when (and multi-term-buffer-list multi-term-stickiness)
+      (multi-term-split-window-and-focus))
     ;; Set buffer.
     (setq term-buffer (multi-term-get-buffer current-prefix-arg))
     (setq multi-term-buffer-list (nconc multi-term-buffer-list (list term-buffer)))
@@ -549,6 +566,36 @@ Will prompt you shell name when you type `C-u' before this command."
   (if (multi-term-dedicated-exist-p)
       (select-window multi-term-dedicated-window)
     (message "`multi-term' window is not exist.")))
+
+;;;###autoload
+(defun multi-term-stickiness-toggle ()
+  "Toggles stickiness(shows/hides all terms)"
+  (interactive)
+  (setq multi-term-stickiness (not multi-term-stickiness))
+
+  (let ((cur-buf (current-buffer))
+        (cur-window (selected-window))
+        (new-cur-window nil))
+    (dolist (buf multi-term-buffer-list)
+      (if multi-term-stickiness
+          (progn
+            ;; Split window
+            (multi-term-split-window-and-focus)
+            ;; Switch buffer
+            (switch-to-buffer buf)
+            ;; Note the new window of current buffer
+            (when (eq cur-buf buf)
+              (setq new-cur-window (selected-window)))
+          )
+        (when (not (eq cur-buf buf)) (delete-windows-on buf))))
+
+    ;; Delete the last selected window because we added it again
+    (when multi-term-stickiness
+      (progn
+       (delete-window cur-window)
+       (select-window new-cur-window)))
+    )
+  )
 
 (defun term-send-esc ()
   "Send ESC in term mode."
@@ -656,6 +703,9 @@ If option DEDICATED-WINDOW is `non-nil' will create dedicated `multi-term' windo
     (set-process-sentinel (get-buffer-process (current-buffer))
                           (lambda (proc change)
                             (when (string-match "\\(finished\\|exited\\)" change)
+                              ;; If sticky mode, also delete the window
+                              (when multi-term-stickiness
+                                (delete-window (selected-window)))
                               (kill-buffer (process-buffer proc)))))))
 
 (defun multi-term-kill-buffer-hook ()
@@ -702,9 +752,20 @@ Option OFFSET for skip OFFSET number term buffer."
             (let ((target-index (if (eq direction 'NEXT)
                                     (mod (+ my-index offset) buffer-list-len)
                                   (mod (- my-index offset) buffer-list-len))))
-              (switch-to-buffer (nth target-index multi-term-buffer-list)))
-          (switch-to-buffer (car multi-term-buffer-list))))
+              (multi-term-switch-subject-to-stickiness (nth target-index multi-term-buffer-list)))
+          (multi-term-switch-subject-to-stickiness (car multi-term-buffer-list))))
     nil))
+
+(defun multi-term-switch-subject-to-stickiness (buf)
+  "In sticky mode, select window of the appropriate buffer else switch buffer in the selected window"
+  (if multi-term-stickiness
+      (dolist (win (window-list))
+        (when (eq buf (window-buffer win))
+          (progn
+            (select-window win)
+            nil))))
+    (switch-to-buffer buf)
+  )
 
 (defun multi-term-keystroke-setup ()
   "Keystroke setup of `term-char-mode'.
@@ -795,6 +856,13 @@ Otherwise return nil."
              (= (- window-number dedicated-window-number) 1))
         t nil)))
 
+(defun multi-term-split-window-and-focus ()
+  "Splits window depending on shell position"
+  (if (or (eq shell-default-position 'top)
+          (eq shell-default-position 'bottom))
+      (split-window-right-and-focus)
+    (split-window-below-and-focus))
+  )
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Advice ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defadvice delete-other-windows (around multi-term-delete-other-window-advice activate)
   "This is advice to make `multi-term' avoid dedicated window deleted.

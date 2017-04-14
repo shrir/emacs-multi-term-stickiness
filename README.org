@@ -1,0 +1,27 @@
+* Stickiness for Emacs multi-term
+This adds stickiness to multi-term buffers so that they stick to their own
+windows.
+
+** Why stickiness?
+Multiple terminal buffers are quite useful but sometimes you loose track of how many
+you have open. And its a bit annoying to cycle through them to find the one you are
+looking for.
+
+** When and How to use stickiness?
+You decide but here's when it makes most sense:
+
+*** Show all terminal buffers
+If you need to see all terminal buffers(especially if you have plenty screen estate).
+Use a toggle switch `multi-term-stickiness-toggle` or turn it on by default in your
+Emacs configuration with `(multi-term-stickiness t)` 
+
+*** Quickly switch between terminal buffers
+If you have too many terminal buffers open, its easier to switch with sticky mode on.
+
+1. If you're not already in sticky mode, turn it on `multi-term-stickiness-toggle`.
+2. Switch to the buffer# of your choice or with `multi-term-next`/`multi-term-prev`.
+3. Turn sticky mode off with the toggle switch, if it bothers you.
+
+** Known Issues
+multi-term pop up/out(with `shell-pop`) does not pop up/out all sticky terminal windows
+together. A work around is to switch to the main multi-term window and then pop it out.
