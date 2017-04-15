@@ -2,6 +2,8 @@
 This adds stickiness to multi-term buffers so that they stick to their own
 windows.
 
+[[file:img/multi-term-stickiness.gif]]
+
 ** Installation
 
 *** Backup multi-term.el from Emacs package directory
