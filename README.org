@@ -6,9 +6,10 @@ windows.
 
 ** Installation
 
-*** Backup multi-term.el from Emacs package directory
+*** Backup multi-term.el and multi-term-autoloads.el from Emacs package directory
 #+BEGIN_SRC shell
 mv ~/.emacs.d/elpa/multi-term-<package-version>/multi-term.el ~/.emacs.d/elpa/multi-term-<package-version>/multi-term.el.bak
+mv ~/.emacs.d/elpa/multi-term-<package-version>/multi-term-autoloads.el ~/.emacs.d/elpa/multi-term-<package-version>/multi-term-autoloads.el.bak
 #+END_SRC
 
 *** Clone repository
@@ -16,9 +17,10 @@ mv ~/.emacs.d/elpa/multi-term-<package-version>/multi-term.el ~/.emacs.d/elpa/mu
 git clone https://github.com/shrir/emacs-multi-term-stickiness.git
 #+END_SRC
 
-*** Copy multi-term script to Emacs package directory
+*** Copy multi-term scripts to Emacs package directory
 #+BEGIN_SRC shell
 cp emacs-multi-term-stickiness/multi-term.el ~/.emacs.d/elpa/multi-term-<package-version>/multi-term.el
+cp emacs-multi-term-stickiness/multi-term-autoloads.el ~/.emacs.d/elpa/multi-term-<package-version>/multi-term-autoloads.el
 #+END_SRC
 
 ** Why stickiness?
