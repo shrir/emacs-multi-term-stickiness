@@ -1,4 +1,4 @@
-* Stickiness for Emacs multi-term
+* Stickiness in Emacs [[https://www.emacswiki.org/emacs/MultiTerm][multi-term]]
 This adds stickiness to multi-term buffers so that they stick to their own
 windows.
 
